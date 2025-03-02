@@ -35,7 +35,7 @@ git clone https://github.com/jiahongc/split-share
 
 2. Navigate to the project directory
 ```
-cd beautiful-splitwise
+cd split-share
 ```
 
 3. Install dependencies
