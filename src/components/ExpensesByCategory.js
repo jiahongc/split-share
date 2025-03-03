@@ -47,18 +47,22 @@ const ExpensesByCategory = () => {
 
     // Calculate spending by category for each person
     expenses.forEach(expense => {
-      const { category, amount, splitAmong, paidBy } = expense;
+      const { category, amount, splitAmong, paidBy, splitOption, exactAmounts } = expense;
       
       if (!category) return;
       
-      // Calculate amount per person
-      const amountPerPerson = amount / splitAmong.length;
-      
-      // Add spending for each person in the split, including the payer
+      // Calculate amount per person based on split type
       splitAmong.forEach(personId => {
         if (expensesByCategory[category]) {
+          let personAmount;
+          if (splitOption === 'percentage' && exactAmounts) {
+            personAmount = exactAmounts[personId] || 0;
+          } else {
+            personAmount = amount / splitAmong.length;
+          }
+          
           expensesByCategory[category][personId] = 
-            (expensesByCategory[category][personId] || 0) + amountPerPerson;
+            (expensesByCategory[category][personId] || 0) + personAmount;
         }
       });
     });

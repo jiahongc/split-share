@@ -106,7 +106,7 @@ const ExpenseCard = ({ expense }) => {
                 fontWeight: 600
               }}
             >
-              {formatAmount(expense.amount / expense.splitAmong.length)}
+              {formatAmount(expense.amount)}
             </Typography>
             <Chip 
               label={expense.category} 
@@ -140,9 +140,9 @@ const ExpenseCard = ({ expense }) => {
                 if (expense.splitOption === 'percentage' && expense.exactAmounts) {
                   const amount = expense.exactAmounts[id] || 0;
                   const percentage = ((amount / expense.amount) * 100).toFixed(0);
-                  return `${name} (${percentage}%)`;
+                  return `${name} (${percentage}% - ${formatAmount(amount)})`;
                 }
-                return name;
+                return `${name} (${formatAmount(expense.amount / expense.splitAmong.length)})`;
               }).join(', ')}
             </Typography>
           </Box>
