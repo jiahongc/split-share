@@ -26,7 +26,7 @@ ChartJS.register(
 
 const ExpensesByCategory = () => {
   const theme = useTheme();
-  const { expenses, expenseCategories, friends, getFriend } = useAppContext();
+  const { expenses, expenseCategories, friends } = useAppContext();
   const [chartData, setChartData] = useState({ datasets: [] });
   const [chartOptions, setChartOptions] = useState({});
 
@@ -48,7 +48,7 @@ const ExpensesByCategory = () => {
 
     // Calculate spending by category for each person
     expenses.forEach(expense => {
-      const { category, amount, splitAmong, paidBy, splitOption, exactAmounts } = expense;
+      const { category, amount, splitAmong, splitOption, exactAmounts } = expense;
       
       if (!category) return;
       

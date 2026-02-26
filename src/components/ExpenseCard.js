@@ -7,7 +7,6 @@ import {
   Avatar, 
   Chip,
   Divider,
-  Stack,
   IconButton,
   useTheme,
   Tooltip

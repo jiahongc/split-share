@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  IconButton, 
-  Avatar, 
-  Box, 
-  Menu, 
-  MenuItem,
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Box,
   Drawer,
   List,
   ListItem,
@@ -18,39 +15,22 @@ import {
   useMediaQuery,
   Button
 } from '@mui/material';
-import { 
-  Menu as MenuIcon, 
-  Dashboard as DashboardIcon, 
-  People as PeopleIcon, 
-  Group as GroupIcon, 
-  Receipt as ReceiptIcon, 
-  AccountBalance as AccountBalanceIcon,
+import {
+  Menu as MenuIcon,
   Settings as SettingsIcon,
   ExitToApp as LogoutIcon,
-  Add as AddIcon
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
 
 const Navbar = ({ onResetData }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { friends } = useAppContext();
   const location = useLocation();
-  
+
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  
+
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
-  };
-  
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
   };
   
   const navItems = [];

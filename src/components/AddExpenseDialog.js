@@ -18,7 +18,6 @@ import {
   Avatar,
   IconButton,
   Typography,
-  Divider,
   useTheme,
   Alert
 } from '@mui/material';
