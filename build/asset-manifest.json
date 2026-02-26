@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.js": "/split-share/static/js/main.5e849fe5.js",
-    "index.html": "/split-share/index.html",
-    "main.5e849fe5.js.map": "/split-share/static/js/main.5e849fe5.js.map"
+    "main.js": "/static/js/main.5e849fe5.js",
+    "index.html": "/index.html",
+    "main.5e849fe5.js.map": "/static/js/main.5e849fe5.js.map"
   },
   "entrypoints": [
     "static/js/main.5e849fe5.js"
