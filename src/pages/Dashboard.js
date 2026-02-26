@@ -1,29 +1,27 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Box, 
-  Container, 
-  Grid, 
-  Typography, 
-  Paper, 
+import React, { useState } from 'react';
+import {
+  Box,
+  Container,
+  Grid,
+  Typography,
+  Paper,
   Button,
-  Stack,
   Avatar,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  IconButton,
   useTheme,
-  Alert
+  Alert,
+  Tooltip
 } from '@mui/material';
-import { 
+import {
   Add as AddIcon,
-  ArrowUpward as ArrowUpIcon,
-  ArrowDownward as ArrowDownIcon,
-  MoreVert as MoreVertIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  CheckCircleOutline as SettleIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
+import { getPersonColor } from '../utils/colors';
 import ExpenseCard from '../components/ExpenseCard';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import PeopleManager from '../components/PeopleManager';
@@ -31,26 +29,7 @@ import ExpensesByCategory from '../components/ExpensesByCategory';
 
 const Dashboard = () => {
   const theme = useTheme();
-  const { expenses, balances, friends, getFriend } = useAppContext();
-  
-  // Color palette for people avatars - same as in PeopleManager
-  const colorPalette = useMemo(() => [
-    '#FF6384', // Pink
-    '#36A2EB', // Blue
-    '#FFCE56', // Yellow
-    '#4BC0C0', // Teal
-    '#9966FF', // Purple
-    '#FF9F40', // Orange
-    '#32CD32', // Lime Green
-    '#BA55D3', // Medium Orchid
-    '#20B2AA', // Light Sea Green
-    '#FF6347'  // Tomato
-  ], []);
-  
-  // Function to get a consistent color for a person based on their ID
-  const getPersonColor = (id) => {
-    return colorPalette[(id - 1) % colorPalette.length];
-  };
+  const { expenses, balances, friends, getFriend, recordSettlement } = useAppContext();
   
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   
@@ -184,20 +163,30 @@ const Dashboard = () => {
                       <ListItemText
                         primary={balance.person.name}
                         secondary={
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Typography
-                              variant="body2"
-                              component="span"
-                              sx={{ 
-                                color: theme.palette.success.main,
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              is owed {formatAmount(balance.amount)} by {balance.otherPerson.name}
-                            </Typography>
-                          </Stack>
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            sx={{
+                              color: theme.palette.success.main,
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            is owed {formatAmount(balance.amount)} by {balance.otherPerson.name}
+                          </Typography>
                         }
                       />
+                      <Tooltip title={`Mark ${balance.otherPerson.name} as settled`}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="success"
+                          startIcon={<SettleIcon fontSize="small" />}
+                          onClick={() => recordSettlement(balance.otherPerson.id, balance.person.id, balance.amount)}
+                          sx={{ ml: 1, whiteSpace: 'nowrap', flexShrink: 0 }}
+                        >
+                          Settle
+                        </Button>
+                      </Tooltip>
                     </ListItem>
                   ))}
                 </List>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Paper,
   Typography,
@@ -29,6 +29,7 @@ import {
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
+import { getPersonColor } from '../utils/colors';
 
 const PeopleManager = () => {
   const theme = useTheme();
@@ -39,25 +40,6 @@ const PeopleManager = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
   const [expanded, setExpanded] = useState(false);
-  
-  // Color palette for people avatars
-  const colorPalette = useMemo(() => [
-    '#FF6384', // Pink
-    '#36A2EB', // Blue
-    '#FFCE56', // Yellow
-    '#4BC0C0', // Teal
-    '#9966FF', // Purple
-    '#FF9F40', // Orange
-    '#32CD32', // Lime Green
-    '#BA55D3', // Medium Orchid
-    '#20B2AA', // Light Sea Green
-    '#FF6347'  // Tomato
-  ], []);
-  
-  // Function to get a consistent color for a person based on their ID
-  const getPersonColor = (id) => {
-    return colorPalette[(id - 1) % colorPalette.length];
-  };
 
   const handleAddPerson = () => {
     if (!newPersonName.trim()) {

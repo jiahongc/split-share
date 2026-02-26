@@ -12,20 +12,22 @@ import {
   useTheme,
   Tooltip
 } from '@mui/material';
-import { 
+import {
   Delete as DeleteIcon,
-  Restaurant as RestaurantIcon, 
+  Restaurant as RestaurantIcon,
   LocalGasStation as UtilitiesIcon,
   DirectionsCar as TransportationIcon,
   Theaters as EntertainmentIcon,
   FlightTakeoff as TravelIcon,
   ShoppingBag as ShoppingIcon,
   Home as RentIcon,
-  Category as OtherIcon
+  Category as OtherIcon,
+  Handshake as HandshakeIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
-const getCategoryIcon = (category) => {
+const getCategoryIcon = (category, isSettlement) => {
+  if (isSettlement) return <HandshakeIcon />;
   switch(category) {
     case 'Food & Drink': return <RestaurantIcon />;
     case 'Utilities': return <UtilitiesIcon />;
@@ -43,8 +45,10 @@ const ExpenseCard = ({ expense }) => {
   const { getFriend, expenseCategories, removeExpense } = useAppContext();
   
   const paidBy = getFriend(expense.paidBy)?.name || 'Unknown';
-  
-  const categoryColor = expenseCategories.find(cat => cat.id === expense.category)?.color || '#868B8E';
+  const isSettlement = expense.isSettlement === true;
+  const categoryColor = isSettlement
+    ? '#4CAF50'
+    : expenseCategories.find(cat => cat.id === expense.category)?.color || '#868B8E';
   
   const formatDate = (date) => {
     const options = { month: 'short', day: 'numeric' };
@@ -86,7 +90,7 @@ const ExpenseCard = ({ expense }) => {
                 mr: 1.5
               }}
             >
-              {getCategoryIcon(expense.category)}
+              {getCategoryIcon(expense.category, isSettlement)}
             </Avatar>
             <Box>
               <Typography variant="subtitle1" component="div" sx={{ lineHeight: 1.2, fontWeight: 500 }}>
@@ -98,20 +102,20 @@ const ExpenseCard = ({ expense }) => {
             </Box>
           </Box>
           <Box sx={{ textAlign: 'right' }}>
-            <Typography 
-              variant="subtitle1" 
-              component="div" 
-              sx={{ 
-                color: theme.palette.primary.main,
+            <Typography
+              variant="subtitle1"
+              component="div"
+              sx={{
+                color: isSettlement ? '#4CAF50' : theme.palette.primary.main,
                 fontWeight: 600
               }}
             >
               {formatAmount(expense.amount)}
             </Typography>
-            <Chip 
-              label={expense.category} 
-              size="small" 
-              sx={{ 
+            <Chip
+              label={isSettlement ? 'Settlement' : expense.category}
+              size="small"
+              sx={{
                 bgcolor: categoryColor + '20',
                 color: categoryColor,
                 fontWeight: 500,
@@ -119,7 +123,7 @@ const ExpenseCard = ({ expense }) => {
                 height: '20px',
                 fontSize: '0.65rem',
                 mt: 0.3
-              }} 
+              }}
             />
           </Box>
         </Box>
@@ -128,23 +132,31 @@ const ExpenseCard = ({ expense }) => {
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="caption" color="text.secondary">
-              {`${paidBy || 'Someone'} paid ${formatAmount(expense.amount)}`}
-            </Typography>
-            <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-              <Box component="span" sx={{ color: 'text.secondary' }}>
-                Split {expense.splitOption === 'percentage' ? '(by percentage)' : `(${formatAmount(expense.amount / expense.splitAmong.length)} each)`}: 
-              </Box> 
-              {expense.splitAmong.map(id => {
-                const name = getFriend(id)?.name || 'Unknown';
-                if (expense.splitOption === 'percentage' && expense.exactAmounts) {
-                  const amount = expense.exactAmounts[id] || 0;
-                  const percentage = ((amount / expense.amount) * 100).toFixed(0);
-                  return `${name} (${percentage}% - ${formatAmount(amount)})`;
-                }
-                return `${name} (${formatAmount(expense.amount / expense.splitAmong.length)})`;
-              }).join(', ')}
-            </Typography>
+            {isSettlement ? (
+              <Typography variant="caption" color="success.main" fontWeight="bold">
+                {paidBy} paid {getFriend(expense.splitAmong[0])?.name || 'Unknown'} {formatAmount(expense.amount)}
+              </Typography>
+            ) : (
+              <>
+                <Typography variant="caption" color="text.secondary">
+                  {`${paidBy || 'Someone'} paid ${formatAmount(expense.amount)}`}
+                </Typography>
+                <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                  <Box component="span" sx={{ color: 'text.secondary' }}>
+                    Split {expense.splitOption === 'percentage' ? '(by percentage)' : `(${formatAmount(expense.amount / expense.splitAmong.length)} each)`}:{' '}
+                  </Box>
+                  {expense.splitAmong.map(id => {
+                    const name = getFriend(id)?.name || 'Unknown';
+                    if (expense.splitOption === 'percentage' && expense.exactAmounts) {
+                      const amount = expense.exactAmounts[id] || 0;
+                      const percentage = ((amount / expense.amount) * 100).toFixed(0);
+                      return `${name} (${percentage}% - ${formatAmount(amount)})`;
+                    }
+                    return `${name} (${formatAmount(expense.amount / expense.splitAmong.length)})`;
+                  }).join(', ')}
+                </Typography>
+              </>
+            )}
           </Box>
           
           <Tooltip title="Delete expense">

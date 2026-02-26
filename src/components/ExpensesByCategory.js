@@ -12,6 +12,7 @@ import {
   Legend
 } from 'chart.js';
 import { useAppContext } from '../context/AppContext';
+import { colorPalette } from '../utils/colors';
 
 // Register Chart.js components
 ChartJS.register(
@@ -71,20 +72,6 @@ const ExpensesByCategory = () => {
     const labels = expenseCategories
       .filter(cat => Object.values(expensesByCategory[cat.id] || {}).some(val => val > 0))
       .map(cat => cat.name);
-    
-    // Create a color palette for users
-    const colorPalette = [
-      '#FF6384', // Pink
-      '#36A2EB', // Blue
-      '#FFCE56', // Yellow
-      '#4BC0C0', // Teal
-      '#9966FF', // Purple
-      '#FF9F40', // Orange
-      '#32CD32', // Lime Green
-      '#BA55D3', // Medium Orchid
-      '#20B2AA', // Light Sea Green
-      '#FF6347'  // Tomato
-    ];
     
     const datasets = friends.map((friend, index) => {
       const personData = [];

@@ -4,11 +4,6 @@ const AppContext = createContext();
 
 export const useAppContext = () => useContext(AppContext);
 
-// Empty initial data
-const emptyFriends = [];
-const emptyGroups = [];
-const emptyExpenses = [];
-
 // Categories with their colors (keep these as they're needed for the UI)
 const expenseCategories = [
   { id: 'Food & Drink', name: 'Food & Drink', color: '#FF9F1C' },
@@ -21,142 +16,173 @@ const expenseCategories = [
   { id: 'Other', name: 'Other', color: '#868B8E' },
 ];
 
+const loadFromStorage = (key, fallback) => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const nextId = (items) => items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+
 export const AppProvider = ({ children }) => {
-  const [friends, setFriends] = useState(emptyFriends);
-  const [groups, setGroups] = useState(emptyGroups);
-  const [expenses, setExpenses] = useState(emptyExpenses);
+  const [friends, setFriends] = useState(() => loadFromStorage('splitshare-friends', []));
+  const [groups, setGroups] = useState(() => loadFromStorage('splitshare-groups', []));
+  const [expenses, setExpenses] = useState(() => {
+    const stored = loadFromStorage('splitshare-expenses', []);
+    // Re-hydrate dates from strings
+    return stored.map(e => ({ ...e, date: new Date(e.date) }));
+  });
   const [balances, setBalances] = useState({});
-  
+
+  // Persist to localStorage
+  useEffect(() => {
+    localStorage.setItem('splitshare-friends', JSON.stringify(friends));
+  }, [friends]);
+
+  useEffect(() => {
+    localStorage.setItem('splitshare-groups', JSON.stringify(groups));
+  }, [groups]);
+
+  useEffect(() => {
+    localStorage.setItem('splitshare-expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
   // Calculate balances between people
   useEffect(() => {
     const calculatedBalances = {};
-    
+
     // Initialize all balances to 0
     friends.forEach(person => {
       calculatedBalances[person.id] = {};
-      
       friends.forEach(otherPerson => {
         if (person.id !== otherPerson.id) {
           calculatedBalances[person.id][otherPerson.id] = 0;
         }
       });
     });
-    
+
     // For each expense, calculate what others owe the payer
     expenses.forEach(expense => {
       const payer = expense.paidBy;
       const isPercentageSplit = expense.splitOption === 'percentage' && expense.exactAmounts;
-      
-      // Get amount per person - either equal split or percentage based
+
       expense.splitAmong.forEach(personId => {
         if (personId !== payer) {
-          // Calculate how much each person owes to payer
           if (!calculatedBalances[personId]) calculatedBalances[personId] = {};
           if (!calculatedBalances[payer]) calculatedBalances[payer] = {};
-          
+
           let amountOwed;
-          
           if (isPercentageSplit) {
-            // Use exact amount from percentage split
             amountOwed = expense.exactAmounts[personId] || 0;
           } else {
-            // Default to equal split
-            const splitCount = expense.splitAmong.length;
-            amountOwed = expense.amount / splitCount;
+            amountOwed = expense.amount / expense.splitAmong.length;
           }
-          
+
           calculatedBalances[personId][payer] = (calculatedBalances[personId][payer] || 0) - amountOwed;
           calculatedBalances[payer][personId] = (calculatedBalances[payer][personId] || 0) + amountOwed;
         }
       });
     });
-    
+
     setBalances(calculatedBalances);
   }, [expenses, friends]);
-  
+
   // Add a new expense
   const addExpense = (newExpense) => {
     const expenseWithId = {
       ...newExpense,
-      id: expenses.length + 1,
+      id: nextId(expenses),
       date: new Date(newExpense.date)
     };
-    setExpenses([...expenses, expenseWithId]);
+    setExpenses(prev => [...prev, expenseWithId]);
   };
-  
+
   // Remove an expense by id
   const removeExpense = (expenseId) => {
-    setExpenses(expenses.filter(expense => expense.id !== expenseId));
+    setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
   };
-  
+
+  // Record a settlement payment: debtor pays creditor the given amount
+  // Creates a virtual expense that zeroes out the debt
+  const recordSettlement = (debtorId, creditorId, amount) => {
+    const settlement = {
+      id: nextId(expenses),
+      description: `${getFriend(debtorId)?.name} settled up with ${getFriend(creditorId)?.name}`,
+      amount,
+      paidBy: debtorId,
+      splitAmong: [creditorId],
+      splitOption: 'equal',
+      category: 'Other',
+      date: new Date(),
+      isSettlement: true,
+    };
+    setExpenses(prev => [...prev, settlement]);
+  };
+
   // Add a new person
   const addFriend = (name) => {
-    const nextId = friends.length > 0 ? Math.max(...friends.map(f => f.id)) + 1 : 1;
     const newFriend = {
-      id: nextId,
-      name: name,
+      id: nextId(friends),
+      name,
       email: `${name.toLowerCase()}@example.com`,
       avatar: '',
     };
-    setFriends([...friends, newFriend]);
+    setFriends(prev => [...prev, newFriend]);
   };
-  
+
   // Remove a person
   const removeFriend = (friendId) => {
-    // Don't allow removing people who are involved in expenses
-    const isInvolved = expenses.some(expense => 
-      expense.paidBy === friendId || 
+    const isInvolved = expenses.some(expense =>
+      expense.paidBy === friendId ||
       expense.splitAmong.includes(friendId)
     );
-    
+
     if (!isInvolved) {
-      setFriends(friends.filter(friend => friend.id !== friendId));
+      setFriends(prev => prev.filter(friend => friend.id !== friendId));
     }
-    
-    return !isInvolved; // Return success status
+
+    return !isInvolved;
   };
-  
+
   // Add a new group
   const addGroup = (newGroup) => {
     const groupWithId = {
       ...newGroup,
-      id: groups.length + 1,
+      id: nextId(groups),
       total: 0
     };
-    setGroups([...groups, groupWithId]);
+    setGroups(prev => [...prev, groupWithId]);
   };
-  
+
   // Reset all data
   const resetAll = () => {
-    setFriends(emptyFriends);
-    setGroups(emptyGroups);
-    setExpenses(emptyExpenses);
+    setFriends([]);
+    setGroups([]);
+    setExpenses([]);
     setBalances({});
+    localStorage.removeItem('splitshare-friends');
+    localStorage.removeItem('splitshare-groups');
+    localStorage.removeItem('splitshare-expenses');
   };
-  
+
   // Get friend by id
-  const getFriend = (id) => {
-    return friends.find(friend => friend.id === id);
-  };
-  
+  const getFriend = (id) => friends.find(friend => friend.id === id);
+
   // Get group by id
-  const getGroup = (id) => {
-    return groups.find(group => group.id === id);
-  };
-  
+  const getGroup = (id) => groups.find(group => group.id === id);
+
   // Get expenses for a specific group
-  const getGroupExpenses = (groupId) => {
-    return expenses.filter(expense => expense.group === groupId);
-  };
-  
+  const getGroupExpenses = (groupId) => expenses.filter(expense => expense.group === groupId);
+
   // Get all expenses involving a specific friend
-  const getFriendExpenses = (friendId) => {
-    return expenses.filter(expense => 
-      expense.paidBy === friendId || 
-      expense.splitAmong.includes(friendId)
-    );
-  };
-  
+  const getFriendExpenses = (friendId) => expenses.filter(expense =>
+    expense.paidBy === friendId ||
+    expense.splitAmong.includes(friendId)
+  );
+
   return (
     <AppContext.Provider
       value={{
@@ -167,6 +193,7 @@ export const AppProvider = ({ children }) => {
         expenseCategories,
         addExpense,
         removeExpense,
+        recordSettlement,
         addFriend,
         removeFriend,
         addGroup,

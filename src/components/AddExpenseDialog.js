@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -31,29 +31,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import { useAppContext } from '../context/AppContext';
+import { getPersonColor } from '../utils/colors';
 
 const AddExpenseDialog = ({ open, onClose }) => {
   const theme = useTheme();
   const { friends, expenseCategories, addExpense } = useAppContext();
-  
-  // Color palette for people avatars - same as in PeopleManager and Dashboard
-  const colorPalette = useMemo(() => [
-    '#FF6384', // Pink
-    '#36A2EB', // Blue
-    '#FFCE56', // Yellow
-    '#4BC0C0', // Teal
-    '#9966FF', // Purple
-    '#FF9F40', // Orange
-    '#32CD32', // Lime Green
-    '#BA55D3', // Medium Orchid
-    '#20B2AA', // Light Sea Green
-    '#FF6347'  // Tomato
-  ], []);
-  
-  // Function to get a consistent color for a person based on their ID
-  const getPersonColor = (id) => {
-    return colorPalette[(id - 1) % colorPalette.length];
-  };
   
   const [expense, setExpense] = useState({
     description: '',
@@ -351,7 +333,7 @@ const AddExpenseDialog = ({ open, onClose }) => {
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Avatar
                             sx={{ 
-                              bgcolor: theme.palette.primary.main,
+                              bgcolor: getPersonColor(person.id),
                               width: 24,
                               height: 24,
                               mr: 1,
@@ -430,7 +412,7 @@ const AddExpenseDialog = ({ open, onClose }) => {
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Avatar
                             sx={{ 
-                              bgcolor: theme.palette.primary.main,
+                              bgcolor: getPersonColor(person.id),
                               width: 24,
                               height: 24,
                               mr: 1,
@@ -466,7 +448,7 @@ const AddExpenseDialog = ({ open, onClose }) => {
                           <Box key={personId} sx={{ display: 'flex', alignItems: 'center' }}>
                             <Avatar
                               sx={{ 
-                                bgcolor: theme.palette.primary.main,
+                                bgcolor: getPersonColor(person.id),
                                 width: 24,
                                 height: 24,
                                 mr: 1,
